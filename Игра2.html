@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Викторина — Административное право</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 50%, #0f1e38 100%);
+    color: #e8ecf4;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    overflow-x: hidden;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    max-width: 1200px;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- СТАРТОВЫЙ ЭКРАН ---------- */
+  #startScreen {
+    text-align: center;
+  }
+
+  .start-box {
+    background: linear-gradient(145deg, #1a2a4a 0%, #22355a 100%);
+    border: 2px solid #3a5a90;
+    border-radius: 24px;
+    padding: 60px 50px;
+    max-width: 780px;
+    margin: 0 auto;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .start-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(240, 215, 140, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .emblem {
+    width: 200px;
+    height: 220px;
+    margin: 0 auto 20px;
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 25px rgba(240, 215, 140, 0.35));
+    animation: floatEmblem 4s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes floatEmblem {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+
+  .start-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #f0d78c;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 25px rgba(240, 215, 140, 0.4);
+    line-height: 1.15;
+    position: relative;
+    z-index: 1;
+  }
+
+  .start-subtitle {
+    font-size: 1.15rem;
+    color: #8fa8c8;
+    margin-bottom: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
+  }
+
+  .start-divider {
+    width: 140px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #f0d78c, transparent);
+    margin: 25px auto 35px;
+  }
+
+  .btn-start {
+    padding: 18px 60px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: inherit;
+    color: #1a2a4a;
+    background: linear-gradient(145deg, #d4b85a 0%, #f0d78c 100%);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 25px rgba(240, 215, 140, 0.4);
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-start:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 14px 35px rgba(240, 215, 140, 0.6);
+  }
+
+  .btn-start:active { transform: translateY(-1px) scale(1); }
+
+  /* ---------- Игровое поле ---------- */
+  .title {
+    text-align: center;
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #f0d78c;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 15px rgba(240, 215, 140, 0.3);
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #8fa8c8;
+    margin-bottom: 40px;
+    letter-spacing: 0.5px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+
+  .card {
+    background: linear-gradient(145deg, #1e3255 0%, #2a4470 100%);
+    border: 2px solid #3a5a90;
+    border-radius: 14px;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: #f0d78c;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(240, 215, 140, 0.15), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .card:hover:not(.used) {
+    transform: translateY(-6px) scale(1.03);
+    border-color: #f0d78c;
+    box-shadow: 0 12px 30px rgba(240, 215, 140, 0.25);
+  }
+
+  .card:hover:not(.used)::before { opacity: 1; }
+
+  .card.used {
+    background: linear-gradient(145deg, #182030 0%, #1e2838 100%);
+    border-color: #2a3548;
+    color: #3a4a60;
+    cursor: default;
+    box-shadow: none;
+    transform: scale(0.97);
+  }
+
+  .card.used::after {
+    content: '✓';
+    position: absolute;
+    font-size: 2.2rem;
+    color: #4a7a4a;
+    opacity: 0.6;
+  }
+
+  .card.used span { display: none; }
+
+  /* ---------- Экран вопроса ---------- */
+  .question-box {
+    background: linear-gradient(145deg, #1a2a4a 0%, #22355a 100%);
+    border: 2px solid #3a5a90;
+    border-radius: 18px;
+    padding: 50px 45px;
+    min-height: 380px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .question-number {
+    font-size: 0.95rem;
+    color: #8fa8c8;
+    margin-bottom: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .question-text {
+    font-size: 1.75rem;
+    line-height: 1.5;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 30px;
+  }
+
+  .answer-block {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, opacity 0.5s ease, margin 0.4s ease;
+    opacity: 0;
+  }
+
+  .answer-block.visible {
+    max-height: 500px;
+    opacity: 1;
+    margin-top: 10px;
+  }
+
+  .answer-label {
+    font-size: 0.9rem;
+    color: #f0d78c;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .answer-text {
+    font-size: 1.35rem;
+    line-height: 1.55;
+    color: #b8e0c8;
+    padding: 20px 25px;
+    background: rgba(60, 120, 80, 0.15);
+    border-left: 4px solid #4a9a6a;
+    border-radius: 8px;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 35px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.5px;
+    font-family: inherit;
+  }
+
+  .btn-show {
+    background: linear-gradient(145deg, #d4b85a 0%, #f0d78c 100%);
+    color: #1a2a4a;
+    box-shadow: 0 4px 15px rgba(240, 215, 140, 0.3);
+  }
+
+  .btn-show:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(240, 215, 140, 0.45);
+  }
+
+  .btn-next {
+    background: linear-gradient(145deg, #2a4470 0%, #3a5a90 100%);
+    color: #f0d78c;
+    border: 2px solid #4a6aa0;
+    display: none;
+  }
+
+  .btn-next.visible { display: inline-block; }
+
+  .btn-next:hover {
+    transform: translateY(-3px);
+    border-color: #f0d78c;
+    box-shadow: 0 8px 22px rgba(58, 90, 144, 0.4);
+  }
+
+  .btn:active { transform: translateY(-1px); }
+
+  /* ---------- Кнопка "Закончить" ---------- */
+  .finish-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #f0d78c;
+    background: linear-gradient(145deg, #7a2a2a 0%, #a83a3a 100%);
+    border: 2px solid #c04a4a;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(168, 58, 58, 0.35);
+    letter-spacing: 0.5px;
+    z-index: 100;
+    display: none;
+  }
+
+  .finish-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(168, 58, 58, 0.55);
+    border-color: #f0d78c;
+  }
+
+  .finish-btn:active { transform: translateY(-1px); }
+
+  /* ---------- Экран "Спасибо" ---------- */
+  #thanksScreen {
+    text-align: center;
+  }
+
+  .thanks-box {
+    background: linear-gradient(145deg, #1a2a4a 0%, #22355a 100%);
+    border: 2px solid #3a5a90;
+    border-radius: 22px;
+    padding: 80px 50px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .thanks-title {
+    font-size: 3.4rem;
+    font-weight: 700;
+    color: #f0d78c;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 25px rgba(240, 215, 140, 0.4);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { text-shadow: 0 4px 25px rgba(240, 215, 140, 0.4); }
+    50%      { text-shadow: 0 4px 40px rgba(240, 215, 140, 0.7); }
+  }
+
+  .thanks-divider {
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #f0d78c, transparent);
+    margin: 0 auto 35px;
+  }
+
+  .thanks-author {
+    font-size: 1.3rem;
+    color: #c8d8ec;
+    margin-bottom: 50px;
+    line-height: 1.6;
+  }
+
+  .thanks-author span {
+    display: block;
+    font-size: 1rem;
+    color: #8fa8c8;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .thanks-author strong {
+    color: #f0d78c;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .btn-restart {
+    padding: 16px 45px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #1a2a4a;
+    background: linear-gradient(145deg, #d4b85a 0%, #f0d78c 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(240, 215, 140, 0.35);
+    letter-spacing: 0.5px;
+  }
+
+  .btn-restart:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(240, 215, 140, 0.55);
+  }
+
+  .btn-restart:active { transform: translateY(-1px); }
+
+  /* ---------- Адаптив ---------- */
+  @media (max-width: 700px) {
+    .start-box { padding: 40px 25px; }
+    .emblem { width: 150px; height: 170px; }
+    .start-title { font-size: 2rem; }
+    .start-subtitle { font-size: 0.95rem; letter-spacing: 2px; }
+    .btn-start { padding: 15px 40px; font-size: 1.05rem; }
+    .title { font-size: 1.8rem; }
+    .board { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .card { height: 95px; font-size: 2.2rem; }
+    .question-box { padding: 30px 22px; }
+    .question-text { font-size: 1.25rem; }
+    .answer-text { font-size: 1.05rem; padding: 15px 18px; }
+    .btn { padding: 12px 22px; font-size: 0.95rem; }
+    .thanks-title { font-size: 2.2rem; }
+    .thanks-box { padding: 50px 25px; }
+    .thanks-author strong { font-size: 1.2rem; }
+    .finish-btn { padding: 11px 20px; font-size: 0.9rem; bottom: 15px; right: 15px; }
+  }
+
+  @media (max-width: 450px) {
+    .board { grid-template-columns: repeat(2, 1fr); }
+    .card { height: 85px; font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ЭКРАН 0: СТАРТОВЫЙ -->
+<div class="screen active" id="startScreen">
+  <div class="start-box">
+    <!-- Герб Российской Федерации -->
+	<img class="emblem" src="GerbRF.png" alt="Герб Российской Федерации">
+        
+    <h1 class="start-title">Административное право</h1>
+    <p class="start-subtitle">Интерактивная игра</p>
+    <div class="start-divider"></div>
+    <button class="btn-start" id="startBtn">Начать</button>
+  </div>
+</div>
+
+<!-- ЭКРАН 1: ИГРОВОЕ ПОЛЕ -->
+<div class="screen" id="boardScreen">
+  <h1 class="title">Административное право</h1>
+  <p class="subtitle">Выберите вопрос</p>
+  <div class="board" id="board"></div>
+</div>
+
+<!-- ЭКРАН 2: ВОПРОС -->
+<div class="screen" id="questionScreen">
+  <div class="question-box">
+    <div>
+      <div class="question-number" id="qNumber"></div>
+      <div class="question-text" id="qText"></div>
+      <div class="answer-block" id="answerBlock">
+        <div class="answer-label">Ответ</div>
+        <div class="answer-text" id="aText"></div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="btn btn-show" id="showBtn">Посмотреть ответ</button>
+      <button class="btn btn-next" id="nextBtn">Далее →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ЭКРАН 3: СПАСИБО ЗА ВНИМАНИЕ -->
+<div class="screen" id="thanksScreen">
+  <div class="thanks-box">
+    <h1 class="thanks-title">Спасибо за внимание!</h1>
+    <div class="thanks-divider"></div>
+    <p class="thanks-author">
+      <span>Автор игры</span>
+      <strong>Хананова Зухра Риановна</strong>
+    </p>
+    <button class="btn-restart" id="restartBtn">Начать сначала</button>
+  </div>
+</div>
+
+<!-- Кнопка "Закончить" (показывается ТОЛЬКО на игровом поле) -->
+<button class="finish-btn" id="finishBtn">Закончить</button>
+
+<script>
+/* ============================================================
+   ВОПРОСЫ И ОТВЕТЫ — редактируй здесь
+   ============================================================ */
+const questions = [
+  {
+    q: "Что является предметом административного права?",
+    a: "Общественные отношения, возникающие в сфере государственного управления (исполнительной власти)."
+  },
+  {
+    q: "Какой основной федеральный закон регулирует административные правонарушения в РФ?",
+    a: "КоАП РФ — Кодекс Российской Федерации об административных правонарушениях."
+  },
+  {
+    q: "С какого возраста наступает административная ответственность по общему правилу?",
+    a: "С 16 лет."
+  },
+  {
+    q: "Назовите основной признак административного правонарушения.",
+    a: "Противоправность, виновность, наказуемость (деяние, посягающее на общественный порядок и управление)."
+  },
+  {
+    q: "Какое административное наказание является основным и самым распространённым?",
+    a: "Административный штраф."
+  },
+  {
+    q: "Что такое административный арест и на какой срок он назначается?",
+    a: "Содержание нарушителя в условиях изоляции; до 15 суток, а за отдельные нарушения — до 30 суток."
+  },
+  {
+    q: "Кто вправе составлять протоколы об административных правонарушениях?",
+    a: "Уполномоченные должностные лица органов исполнительной власти (полиция, инспекции и т.д.)."
+  },
+  {
+    q: "Что такое административное задержание и на какой срок оно применяется?",
+    a: "Кратковременное ограничение свободы; по общему правилу — до 3 часов."
+  },
+  {
+    q: "Назовите виды административных наказаний (не менее 5).",
+    a: "Предупреждение, штраф, конфискация, лишение специального права, арест, выдворение, дисквалификация и др."
+  },
+  {
+    q: "Что такое государственная служба?",
+    a: "Профессиональная деятельность граждан по обеспечению исполнения полномочий государственных органов."
+  },
+  {
+    q: "В чём отличие административной ответственности от уголовной?",
+    a: "Меньшая общественная опасность, иной порядок привлечения, иные меры наказания, отсутствие судимости."
+  },
+  {
+    q: "Какие принципы административного процесса вы знаете?",
+    a: "Законность, равенство перед законом, презумпция невиновности, гласность, состязательность."
+  }
+];
+
+/* ============================================================
+   ЛОГИКА ИГРЫ
+   ============================================================ */
+const startScreen = document.getElementById('startScreen');
+const boardScreen = document.getElementById('boardScreen');
+const questionScreen = document.getElementById('questionScreen');
+const thanksScreen = document.getElementById('thanksScreen');
+const board = document.getElementById('board');
+const qNumber = document.getElementById('qNumber');
+const qText = document.getElementById('qText');
+const aText = document.getElementById('aText');
+const answerBlock = document.getElementById('answerBlock');
+const showBtn = document.getElementById('showBtn');
+const nextBtn = document.getElementById('nextBtn');
+const finishBtn = document.getElementById('finishBtn');
+const restartBtn = document.getElementById('restartBtn');
+const startBtn = document.getElementById('startBtn');
+
+let usedCards = new Set();
+let currentIndex = null;
+
+function showScreen(screen) {
+  [startScreen, boardScreen, questionScreen, thanksScreen].forEach(s => s.classList.remove('active'));
+  screen.classList.add('active');
+  // Кнопка "Закончить" видна ТОЛЬКО на игровом поле
+  finishBtn.style.display = (screen === boardScreen) ? 'block' : 'none';
+}
+
+function buildBoard() {
+  board.innerHTML = '';
+  for (let i = 0; i < questions.length; i++) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.index = i;
+    card.innerHTML = '<span>' + (i + 1) + '</span>';
+    if (usedCards.has(i)) card.classList.add('used');
+    card.addEventListener('click', () => openQuestion(i));
+    board.appendChild(card);
+  }
+}
+
+function openQuestion(index) {
+  if (usedCards.has(index)) return;
+  currentIndex = index;
+
+  qNumber.textContent = 'Вопрос ' + (index + 1);
+  qText.textContent = questions[index].q;
+  aText.textContent = questions[index].a;
+
+  answerBlock.classList.remove('visible');
+  showBtn.style.display = 'inline-block';
+  nextBtn.classList.remove('visible');
+
+  showScreen(questionScreen);
+}
+
+startBtn.addEventListener('click', () => {
+  showScreen(boardScreen);
+});
+
+showBtn.addEventListener('click', () => {
+  answerBlock.classList.add('visible');
+  showBtn.style.display = 'none';
+  nextBtn.classList.add('visible');
+});
+
+nextBtn.addEventListener('click', () => {
+  usedCards.add(currentIndex);
+  currentIndex = null;
+  buildBoard();
+  showScreen(boardScreen);
+});
+
+finishBtn.addEventListener('click', () => {
+  showScreen(thanksScreen);
+});
+
+restartBtn.addEventListener('click', () => {
+  usedCards = new Set();
+  currentIndex = null;
+  buildBoard();
+  showScreen(startScreen);
+});
+
+buildBoard();
+showScreen(startScreen); // на старте кнопка "Закончить" скрыта
+</script>
+
+</body>
+</html>
